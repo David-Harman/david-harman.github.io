@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation Mathematics Marks Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Foundation Mathematics Marks Calculator</h1>
+    <div class="container">
+        <label>Workshop Engagement (out of 20):</label>
+        <input type="number" id="workshop" min="0" max="20">
+
+        <label>Progress Test 1 (out of 20):</label>
+        <input type="number" id="test1" min="0" max="20">
+
+        <label>Progress Test 2 (out of 20):</label>
+        <input type="number" id="test2" min="0" max="20">
+
+        <label>Progress Test 3 (out of 20):</label>
+        <input type="number" id="test3" min="0" max="20">
+
+        <button onclick="calculateGrade()">Calculate</button>
+
+        <div class="result" id="output"></div>
+        <div class="error" id="error"></div>
+    </div>
+
+    <script>
+        function calculateGrade() {
+            let workshop = parseFloat(document.getElementById("workshop").value);
+            let test1 = parseFloat(document.getElementById("test1").value);
+            let test2 = parseFloat(document.getElementById("test2").value);
+            let test3 = parseFloat(document.getElementById("test3").value);
+            
+            let inputs = { workshop, test1, test2, test3 };
+            
+            for (let key in inputs) {
+                if (isNaN(inputs[key]) || inputs[key] < 0 || inputs[key] > 20) {
+                    document.getElementById("error").innerText = "Invalid Mark: All marks must be between 0 and 20";
+                    document.getElementById("output").innerText = "";
+                    return;
+                }
+            }
+            
+            document.getElementById("error").innerText = "";
+            
+            let weightedScore = (workshop / 20) * 20 + (test1 / 20) * 20 + (test2 / 20) * 30 + (test3 / 20) * 30;
+            let percentage = weightedScore;
+            let grade = percentage >= 65 ? "Non-Graded Pass (NGP)" : "Non-Graded Fail (NGF)";
+
+            document.getElementById("output").innerHTML = `Overall Percentage: ${percentage.toFixed(2)}% <br> Final Grade: ${grade}`;
+        }
+    </script>
+</body>
+</html>
