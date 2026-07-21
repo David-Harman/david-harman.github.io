@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Lecture slides for 2201NSC and 1020ENG.">
-  <title>Lecture Slides</title>
+  <meta name="description" content="Lecture slides and course tools for 2201NSC and 1020ENG.">
+  <title>Lecture Slides and Tools</title>
   <style>
     :root {
       color-scheme: dark;
@@ -18,9 +18,7 @@
       --accent-soft: rgba(99, 216, 255, 0.12);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -39,9 +37,7 @@
       padding: clamp(48px, 8vw, 96px) 0;
     }
 
-    header {
-      margin-bottom: 44px;
-    }
+    header { margin-bottom: 44px; }
 
     h1 {
       margin: 0;
@@ -69,22 +65,11 @@
       border-radius: 18px;
     }
 
-    h2 {
-      margin: 0 0 8px;
-      font-size: 1.55rem;
-    }
+    h2 { margin: 0 0 8px; font-size: 1.55rem; }
+    section p { margin: 0 0 22px; color: var(--muted); }
+    .resource-links { display: grid; gap: 12px; }
 
-    section p {
-      margin: 0 0 22px;
-      color: var(--muted);
-    }
-
-    .slide-links {
-      display: grid;
-      gap: 12px;
-    }
-
-    .slide-link {
+    .resource-link {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -100,20 +85,18 @@
         transform 150ms ease;
     }
 
-    .slide-link:hover {
+    .resource-link:hover {
       background: var(--surface-hover);
       border-color: var(--accent);
       transform: translateY(-1px);
     }
 
-    .slide-link:focus-visible {
+    .resource-link:focus-visible {
       outline: 3px solid var(--accent);
       outline-offset: 3px;
     }
 
-    .week {
-      font-weight: 750;
-    }
+    .resource-name { font-weight: 750; }
 
     .format {
       color: var(--accent);
@@ -122,49 +105,42 @@
       letter-spacing: 0.08em;
     }
 
-    footer {
-      margin-top: 34px;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
+    footer { margin-top: 34px; color: var(--muted); font-size: 0.9rem; }
 
     @media (max-width: 680px) {
-      .courses {
-        grid-template-columns: 1fr;
-      }
-
-      section {
-        padding: 21px;
-      }
+      .courses { grid-template-columns: 1fr; }
+      section { padding: 21px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .slide-link {
-        transition: none;
-      }
+      .resource-link { transition: none; }
     }
   </style>
 </head>
 <body>
   <main>
     <header>
-      <h1>Lecture Slides</h1>
-      <p>Select a course and week to open the lecture slides.</p>
+      <h1>Lecture Slides and Tools</h1>
+      <p>Select a course resource to open it.</p>
     </header>
 
     <div class="courses">
       <section aria-labelledby="course-2201nsc">
         <h2 id="course-2201nsc">2201NSC</h2>
-        <p>Lecture slide collection</p>
+        <p>Lecture slides and course tools</p>
 
-        <nav class="slide-links" aria-label="2201NSC lecture slides">
-          <a class="slide-link" href="2201NSC/Week1Slides.pdf">
-            <span class="week">Week 1 slides</span>
+        <nav class="resource-links" aria-label="2201NSC resources">
+          <a class="resource-link" href="2201NSC/Week1Slides.pdf">
+            <span class="resource-name">Week 1 slides</span>
             <span class="format">PDF</span>
           </a>
-          <a class="slide-link" href="2201NSC/Week2slides.pdf">
-            <span class="week">Week 2 slides</span>
+          <a class="resource-link" href="2201NSC/Week2slides.pdf">
+            <span class="resource-name">Week 2 slides</span>
             <span class="format">PDF</span>
+          </a>
+          <a class="resource-link" href="2201NSC/matrixcalculator.html">
+            <span class="resource-name">Matrix calculator</span>
+            <span class="format">TOOL</span>
           </a>
         </nav>
       </section>
@@ -173,22 +149,20 @@
         <h2 id="course-1020eng">1020ENG</h2>
         <p>Lecture slide collection</p>
 
-        <nav class="slide-links" aria-label="1020ENG lecture slides">
-          <a class="slide-link" href="1020ENG/Week1Slides.pdf">
-            <span class="week">Week 1 slides</span>
+        <nav class="resource-links" aria-label="1020ENG resources">
+          <a class="resource-link" href="1020ENG/Week1Slides.pdf">
+            <span class="resource-name">Week 1 slides</span>
             <span class="format">PDF</span>
           </a>
-          <a class="slide-link" href="1020ENG/Week2slides.pdf">
-            <span class="week">Week 2 slides</span>
+          <a class="resource-link" href="1020ENG/Week2slides.pdf">
+            <span class="resource-name">Week 2 slides</span>
             <span class="format">PDF</span>
           </a>
         </nav>
       </section>
     </div>
 
-    <footer>
-      PDF files open in the current browser tab.
-    </footer>
+    <footer>PDF files and tools open in the current browser tab.</footer>
   </main>
 </body>
 </html>
