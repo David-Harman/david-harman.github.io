@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taylor Series Explorer</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07090d;
+      --panel: #111722;
+      --panel-2: #171f2d;
+      --text: #f4f7fb;
+      --muted: #aeb9ca;
+      --border: #2b3749;
+      --accent: #57d7ff;
+      --focus: #ffd166;
+      --danger: #ff8e8e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 5%, #14233a 0, transparent 32rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(1500px, 96vw);
+      margin: 0 auto;
+      padding: 28px 0 36px;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+
+    h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1; }
+    header p { margin: 8px 0 0; color: var(--muted); font-size: 1.05rem; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 355px) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .panel {
+      background: color-mix(in srgb, var(--panel) 94%, transparent);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 20px 55px rgba(0, 0, 0, .28);
+    }
+
+    .controls { padding: 20px; }
+    .field { margin-bottom: 17px; }
+
+    label, legend {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 10px 12px;
+      font: inherit;
+      font-size: 1.03rem;
+      outline: none;
+    }
+
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #57d7ff25; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    fieldset { border: 0; padding: 0; margin: 4px 0 18px; }
+    .orders { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+
+    .order {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel-2);
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    .order:has(input:checked) { border-color: var(--accent); background: #173248; }
+    .order input { position: absolute; opacity: 0; pointer-events: none; }
+
+    button {
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #43c8f4, #6fe0c0);
+      color: #051016;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    button:hover { filter: brightness(1.08); }
+
+    .help {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.55;
+    }
+
+    code { color: #d8f6ff; }
+    .error { min-height: 1.4em; margin-top: 12px; color: var(--danger); font-weight: 700; }
+
+    .visual { padding: 14px; min-width: 0; }
+    .canvas-wrap {
+      position: relative;
+      min-height: 600px;
+      height: min(72vh, 760px);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: #06090f;
+    }
+
+    canvas { display: block; width: 100%; height: 100%; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      padding: 14px 4px 2px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .legend-item { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 24px; height: 4px; border-radius: 3px; }
+
+    .formula {
+      margin-top: 12px;
+      padding: 13px 15px;
+      border-radius: 11px;
+      background: var(--panel-2);
+      color: #dce7f5;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .formula .math {
+      font-family: Cambria Math, "STIX Two Math", "Times New Roman", serif;
+      font-size: 1.22rem;
+      letter-spacing: .01em;
+    }
+
+    .formula sup {
+      font-size: .68em;
+      line-height: 0;
+      vertical-align: .58em;
+    }
+
+    .math-var {
+      font-family: "Times New Roman", Cambria Math, serif;
+      font-style: italic;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .canvas-wrap { min-height: 440px; height: 58vh; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Taylor Series Explorer</h1>
+        <p>Compare a function with its Taylor polynomial approximations.</p>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="panel controls" aria-label="Graph controls">
+        <div class="field">
+          <label for="functionInput">Function f(x)</label>
+          <input id="functionInput" type="text" value="sin(x)" spellcheck="false">
+        </div>
+
+        <div class="field">
+          <label for="centreInput">Expansion point</label>
+          <input id="centreInput" type="number" value="0" step="0.25">
+        </div>
+
+        <div class="field two-col">
+          <div>
+            <label for="xMinInput">x minimum</label>
+            <input id="xMinInput" type="number" value="-6.5" step="0.5">
+          </div>
+          <div>
+            <label for="xMaxInput">x maximum</label>
+            <input id="xMaxInput" type="number" value="6.5" step="0.5">
+          </div>
+        </div>
+
+        <div class="field two-col">
+          <div>
+            <label for="yMinInput">y minimum</label>
+            <input id="yMinInput" type="number" value="-2" step="0.5">
+          </div>
+          <div>
+            <label for="yMaxInput">y maximum</label>
+            <input id="yMaxInput" type="number" value="2" step="0.5">
+          </div>
+        </div>
+
+        <fieldset>
+          <legend>Taylor orders shown</legend>
+          <div class="orders" id="orders"></div>
+        </fieldset>
+
+        <button id="updateButton" type="button">Update graph</button>
+        <div class="error" id="error" role="alert" aria-live="polite"></div>
+
+        <p class="help">
+          Supported notation includes <code>sin(x)</code>, <code>cos(x)</code>,
+          <code>tan(x)</code>, <code>exp(x)</code>, <code>log(x)</code>,
+          <code>sqrt(x)</code>, <code>sinh(x)</code>, and powers such as
+          <code>x^3</code>. Constants <code>pi</code> and <code>e</code> are available.
+        </p>
+      </section>
+
+      <section class="panel visual" aria-label="Taylor series graph">
+        <div class="canvas-wrap"><canvas id="graph"></canvas></div>
+        <div class="legend" id="legend"></div>
+        <div class="formula" id="formula"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    "use strict";
+
+    const colours = ["#ffd166", "#ef7dff", "#ff8c64", "#8ee78f", "#b7a0ff", "#ff6fae"];
+    const orderChoices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const defaultOrders = new Set([1, 3, 5, 7]);
+    const ordersEl = document.getElementById("orders");
+
+    orderChoices.forEach(order => {
+      const label = document.createElement("label");
+      label.className = "order";
+      label.innerHTML = `<input type="checkbox" value="${order}" ${defaultOrders.has(order) ? "checked" : ""}>${order}`;
+      ordersEl.appendChild(label);
+    });
+
+    function tokenize(source) {
+      const tokens = [];
+      const pattern = /\s*(?:(\d*\.?\d+(?:e[+-]?\d+)?)|([A-Za-z_][A-Za-z_0-9]*)|(.))/gy;
+      let match;
+      while ((match = pattern.exec(source)) !== null) {
+        if (match[1]) tokens.push({ type: "number", value: Number(match[1]) });
+        else if (match[2]) tokens.push({ type: "name", value: match[2].toLowerCase() });
+        else if ("+-*/^(),".includes(match[3])) tokens.push({ type: match[3], value: match[3] });
+        else throw new Error(`Unexpected symbol “${match[3]}”.`);
+      }
+      tokens.push({ type: "eof" });
+      return tokens;
+    }
+
+    function parse(source) {
+      const tokens = tokenize(source.replace(/^\s*(?:y|f\s*\(\s*x\s*\))\s*=\s*/i, ""));
+      let position = 0;
+      const peek = () => tokens[position];
+      const take = type => {
+        if (peek().type !== type) throw new Error(`Expected “${type}”.`);
+        return tokens[position++];
+      };
+
+      function expression() {
+        let node = term();
+        while (peek().type === "+" || peek().type === "-") {
+          const op = tokens[position++].type;
+          node = { type: "binary", op, left: node, right: term() };
+        }
+        return node;
+      }
+
+      function term() {
+        let node = unary();
+        while (peek().type === "*" || peek().type === "/") {
+          const op = tokens[position++].type;
+          node = { type: "binary", op, left: node, right: unary() };
+        }
+        return node;
+      }
+
+      function unary() {
+        if (peek().type === "+" || peek().type === "-") {
+          const op = tokens[position++].type;
+          return { type: "unary", op, value: unary() };
+        }
+        return power();
+      }
+
+      function power() {
+        let node = primary();
+        if (peek().type === "^") {
+          position++;
+          node = { type: "binary", op: "^", left: node, right: unary() };
+        }
+        return node;
+      }
+
+      function primary() {
+        if (peek().type === "number") return { type: "number", value: tokens[position++].value };
+        if (peek().type === "name") {
+          const name = tokens[position++].value;
+          if (peek().type === "(") {
+            position++;
+            const value = expression();
+            take(")");
+            return { type: "call", name, value };
+          }
+          return { type: "name", name };
+        }
+        if (peek().type === "(") {
+          position++;
+          const node = expression();
+          take(")");
+          return node;
+        }
+        throw new Error("Expected a number, x, function, or parentheses.");
+      }
+
+      const tree = expression();
+      if (peek().type !== "eof") throw new Error("Unexpected text after the expression.");
+      return tree;
+    }
+
+    function scalar(node, x) {
+      if (node.type === "number") return node.value;
+      if (node.type === "name") {
+        if (node.name === "x") return x;
+        if (node.name === "pi") return Math.PI;
+        if (node.name === "e") return Math.E;
+        throw new Error(`Unknown name “${node.name}”.`);
+      }
+      if (node.type === "unary") return node.op === "-" ? -scalar(node.value, x) : scalar(node.value, x);
+      if (node.type === "binary") {
+        const a = scalar(node.left, x), b = scalar(node.right, x);
+        return ({ "+": () => a + b, "-": () => a - b, "*": () => a * b,
+          "/": () => a / b, "^": () => Math.pow(a, b) })[node.op]();
+      }
+      const v = scalar(node.value, x);
+      const functions = {
+        sin: Math.sin, cos: Math.cos, tan: Math.tan, exp: Math.exp,
+        log: Math.log, ln: Math.log, sqrt: Math.sqrt, abs: Math.abs,
+        sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh
+      };
+      if (!functions[node.name]) throw new Error(`Unsupported function “${node.name}”.`);
+      return functions[node.name](v);
+    }
+
+    const zero = n => Array(n + 1).fill(0);
+    const constant = (value, n) => { const r = zero(n); r[0] = value; return r; };
+    const add = (a, b) => a.map((v, i) => v + b[i]);
+    const sub = (a, b) => a.map((v, i) => v - b[i]);
+    const scale = (a, k) => a.map(v => v * k);
+    function mul(a, b) {
+      const r = zero(a.length - 1);
+      for (let n = 0; n < r.length; n++) for (let k = 0; k <= n; k++) r[n] += a[k] * b[n - k];
+      return r;
+    }
+    function div(a, b) {
+      if (Math.abs(b[0]) < 1e-14) throw new Error("The Taylor series is not defined at this expansion point.");
+      const r = zero(a.length - 1);
+      for (let n = 0; n < r.length; n++) {
+        let value = a[n];
+        for (let k = 1; k <= n; k++) value -= b[k] * r[n - k];
+        r[n] = value / b[0];
+      }
+      return r;
+    }
+    function expSeries(u) {
+      const nMax = u.length - 1, r = zero(nMax);
+      r[0] = Math.exp(u[0]);
+      for (let n = 1; n <= nMax; n++) {
+        for (let k = 1; k <= n; k++) r[n] += k * u[k] * r[n - k];
+        r[n] /= n;
+      }
+      return r;
+    }
+    function logSeries(u) {
+      if (!(u[0] > 0)) throw new Error("log is not real at this expansion point.");
+      const n = u.length - 1, v = scale(u, 1 / u[0]); v[0] -= 1;
+      const r = constant(Math.log(u[0]), n);
+      let power = constant(1, n);
+      for (let k = 1; k <= n; k++) {
+        power = mul(power, v);
+        const factor = (k % 2 ? 1 : -1) / k;
+        for (let j = 1; j <= n; j++) r[j] += factor * power[j];
+      }
+      return r;
+    }
+    function sinCosSeries(u) {
+      const nMax = u.length - 1, s = zero(nMax), c = zero(nMax);
+      s[0] = Math.sin(u[0]); c[0] = Math.cos(u[0]);
+      for (let n = 1; n <= nMax; n++) {
+        for (let k = 1; k <= n; k++) {
+          s[n] += k * u[k] * c[n - k];
+          c[n] -= k * u[k] * s[n - k];
+        }
+        s[n] /= n; c[n] /= n;
+      }
+      return [s, c];
+    }
+    function sinhCoshSeries(u) {
+      const nMax = u.length - 1, s = zero(nMax), c = zero(nMax);
+      s[0] = Math.sinh(u[0]); c[0] = Math.cosh(u[0]);
+      for (let n = 1; n <= nMax; n++) {
+        for (let k = 1; k <= n; k++) {
+          s[n] += k * u[k] * c[n - k];
+          c[n] += k * u[k] * s[n - k];
+        }
+        s[n] /= n; c[n] /= n;
+      }
+      return [s, c];
+    }
+
+    function series(node, centre, n) {
+      if (node.type === "number") return constant(node.value, n);
+      if (node.type === "name") {
+        if (node.name === "x") { const r = constant(centre, n); if (n) r[1] = 1; return r; }
+        if (node.name === "pi") return constant(Math.PI, n);
+        if (node.name === "e") return constant(Math.E, n);
+        throw new Error(`Unknown name “${node.name}”.`);
+      }
+      if (node.type === "unary") {
+        const value = series(node.value, centre, n);
+        return node.op === "-" ? scale(value, -1) : value;
+      }
+      if (node.type === "binary") {
+        const a = series(node.left, centre, n), b = series(node.right, centre, n);
+        if (node.op === "+") return add(a, b);
+        if (node.op === "-") return sub(a, b);
+        if (node.op === "*") return mul(a, b);
+        if (node.op === "/") return div(a, b);
+        if (node.op === "^") {
+          if (node.right.type === "number" && Number.isInteger(node.right.value) && node.right.value >= 0) {
+            let result = constant(1, n);
+            for (let i = 0; i < node.right.value; i++) result = mul(result, a);
+            return result;
+          }
+          return expSeries(mul(b, logSeries(a)));
+        }
+      }
+      const u = series(node.value, centre, n);
+      if (node.name === "exp") return expSeries(u);
+      if (node.name === "log" || node.name === "ln") return logSeries(u);
+      if (node.name === "sqrt") return expSeries(scale(logSeries(u), 0.5));
+      if (node.name === "sin") return sinCosSeries(u)[0];
+      if (node.name === "cos") return sinCosSeries(u)[1];
+      if (node.name === "tan") { const [s, c] = sinCosSeries(u); return div(s, c); }
+      if (node.name === "sinh") return sinhCoshSeries(u)[0];
+      if (node.name === "cosh") return sinhCoshSeries(u)[1];
+      if (node.name === "tanh") { const [s, c] = sinhCoshSeries(u); return div(s, c); }
+      throw new Error(`Taylor expansion for “${node.name}” is not supported.`);
+    }
+
+    function polynomial(coefficients, dx, order) {
+      let result = 0;
+      for (let i = order; i >= 0; i--) result = result * dx + coefficients[i];
+      return result;
+    }
+
+    function niceStep(span) {
+      const raw = span / 10;
+      const p = Math.pow(10, Math.floor(Math.log10(raw)));
+      const m = raw / p;
+      return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p;
+    }
+
+    function formatNumber(value) {
+      if (Math.abs(value) < 1e-10) return "0";
+      return Number(value.toPrecision(5)).toString();
+    }
+
+    function escapeHTML(value) {
+      return value.replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      })[character]);
+    }
+
+    function prettyInput(value) {
+      return escapeHTML(value)
+        .replace(/\^\s*\(?(-?\d+(?:\.\d+)?)\)?/g, "<sup>$1</sup>")
+        .replace(/\*/g, "&thinsp;·&thinsp;")
+        .replace(/\bx\b/g, '<span class="math-var">x</span>');
+    }
+
+    function seriesHTML(coefficients, centre) {
+      const terms = coefficients
+        .map((coefficient, power) => ({ coefficient, power }))
+        .filter(term => Math.abs(term.coefficient) > 1e-11);
+      if (!terms.length) return "0";
+
+      const centreIsZero = Math.abs(centre) < 1e-12;
+      const centreMagnitude = formatNumber(Math.abs(centre));
+      const variable = centreIsZero
+        ? '<span class="math-var">x</span>'
+        : `(<span class="math-var">x</span> ${centre < 0 ? "+" : "−"} ${centreMagnitude})`;
+
+      return terms.map((term, index) => {
+        const negative = term.coefficient < 0;
+        const magnitude = Math.abs(term.coefficient);
+        const sign = index === 0 ? (negative ? "−" : "") : (negative ? " − " : " + ");
+        if (term.power === 0) return sign + formatNumber(magnitude);
+        const coefficient = Math.abs(magnitude - 1) < 1e-11 ? "" : `${formatNumber(magnitude)}&thinsp;`;
+        const power = term.power === 1 ? "" : `<sup>${term.power}</sup>`;
+        return `${sign}${coefficient}${variable}${power}`;
+      }).join("");
+    }
+
+    function render() {
+      const error = document.getElementById("error");
+      error.textContent = "";
+      try {
+        const source = document.getElementById("functionInput").value;
+        const centre = Number(document.getElementById("centreInput").value);
+        const xMin = Number(document.getElementById("xMinInput").value);
+        const xMax = Number(document.getElementById("xMaxInput").value);
+        const yMin = Number(document.getElementById("yMinInput").value);
+        const yMax = Number(document.getElementById("yMaxInput").value);
+        const selected = [...ordersEl.querySelectorAll("input:checked")].map(x => Number(x.value)).sort((a, b) => a - b);
+        if (!Number.isFinite(centre) || !(xMin < xMax) || !(yMin < yMax)) throw new Error("Check the expansion point and graph limits.");
+        if (!selected.length) throw new Error("Select at least one Taylor order.");
+
+        const tree = parse(source);
+        const maxOrder = Math.max(...selected);
+        const coefficients = series(tree, centre, maxOrder);
+        if (!coefficients.every(Number.isFinite)) throw new Error("The Taylor series is not defined at this expansion point.");
+
+        const canvas = document.getElementById("graph");
+        const box = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.max(1, Math.round(box.width * dpr));
+        canvas.height = Math.max(1, Math.round(box.height * dpr));
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const width = box.width, height = box.height;
+        const margin = { left: 58, right: 24, top: 24, bottom: 46 };
+        const plotW = width - margin.left - margin.right, plotH = height - margin.top - margin.bottom;
+        const px = x => margin.left + (x - xMin) / (xMax - xMin) * plotW;
+        const py = y => margin.top + (yMax - y) / (yMax - yMin) * plotH;
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = "#06090f"; ctx.fillRect(0, 0, width, height);
+        ctx.font = "13px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+
+        const xStep = niceStep(xMax - xMin), yStep = niceStep(yMax - yMin);
+        ctx.lineWidth = 1;
+        for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax + 1e-9; x += xStep) {
+          ctx.strokeStyle = "#263142"; ctx.beginPath(); ctx.moveTo(px(x), margin.top); ctx.lineTo(px(x), height - margin.bottom); ctx.stroke();
+          ctx.fillStyle = "#9caabd"; ctx.fillText(formatNumber(x), px(x), height - margin.bottom + 9);
+        }
+        ctx.textAlign = "right"; ctx.textBaseline = "middle";
+        for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax + 1e-9; y += yStep) {
+          ctx.strokeStyle = "#263142"; ctx.beginPath(); ctx.moveTo(margin.left, py(y)); ctx.lineTo(width - margin.right, py(y)); ctx.stroke();
+          ctx.fillStyle = "#9caabd"; ctx.fillText(formatNumber(y), margin.left - 9, py(y));
+        }
+
+        ctx.strokeStyle = "#d8e1ec"; ctx.lineWidth = 1.6;
+        if (xMin <= 0 && xMax >= 0) { ctx.beginPath(); ctx.moveTo(px(0), margin.top); ctx.lineTo(px(0), height - margin.bottom); ctx.stroke(); }
+        if (yMin <= 0 && yMax >= 0) { ctx.beginPath(); ctx.moveTo(margin.left, py(0)); ctx.lineTo(width - margin.right, py(0)); ctx.stroke(); }
+
+        ctx.fillStyle = "#f4f7fb";
+        ctx.font = 'italic 19px "Times New Roman", serif';
+        ctx.textAlign = "right";
+        ctx.textBaseline = "bottom";
+        ctx.fillText("x", width - margin.right - 4, yMin <= 0 && yMax >= 0 ? py(0) - 7 : height - margin.bottom - 7);
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText("y", xMin <= 0 && xMax >= 0 ? px(0) + 8 : margin.left + 8, margin.top + 5);
+
+        function drawCurve(fn, colour, lineWidth, dashed = false) {
+          ctx.strokeStyle = colour; ctx.lineWidth = lineWidth; ctx.setLineDash(dashed ? [8, 5] : []);
+          ctx.beginPath(); let drawing = false;
+          for (let i = 0; i <= Math.ceil(plotW * 1.5); i++) {
+            const x = xMin + i / Math.ceil(plotW * 1.5) * (xMax - xMin);
+            const y = fn(x);
+            const visible = Number.isFinite(y) && y > yMin - (yMax - yMin) * 8 && y < yMax + (yMax - yMin) * 8;
+            if (!visible) { drawing = false; continue; }
+            if (!drawing) { ctx.moveTo(px(x), py(y)); drawing = true; } else ctx.lineTo(px(x), py(y));
+          }
+          ctx.stroke(); ctx.setLineDash([]);
+        }
+
+        drawCurve(x => scalar(tree, x), "#57d7ff", 3.2);
+        selected.forEach((order, i) => drawCurve(x => polynomial(coefficients, x - centre, order), colours[i % colours.length], 2.1, true));
+
+        const legend = document.getElementById("legend");
+        legend.innerHTML = `<span class="legend-item"><span class="swatch" style="background:#57d7ff"></span>Original function</span>` +
+          selected.map((order, i) => `<span class="legend-item"><span class="swatch" style="background:${colours[i % colours.length]}"></span>Order ${order}</span>`).join("");
+
+        const enteredFunction = source.replace(/^\s*(?:y|f\s*\(\s*x\s*\))\s*=\s*/i, "").trim();
+        document.getElementById("formula").innerHTML =
+          `<span class="math">${prettyInput(enteredFunction)} = ${seriesHTML(coefficients, centre)}</span>`;
+      } catch (problem) {
+        error.textContent = problem.message;
+      }
+    }
+
+    document.getElementById("updateButton").addEventListener("click", render);
+    document.querySelectorAll("input").forEach(input => input.addEventListener("keydown", event => {
+      if (event.key === "Enter") render();
+    }));
+    ordersEl.addEventListener("change", render);
+    window.addEventListener("resize", () => requestAnimationFrame(render));
+    render();
+  </script>
+</body>
+</html>
